@@ -45,8 +45,8 @@ app.add_middleware(
     allow_methods=["*"], allow_headers=["*"],
 )
 
-os.makedirs("static/produtos", exist_ok=True)
-app.mount("/static", StaticFiles(directory="static"), name="static")
+#os.makedirs("static/produtos", exist_ok=True)
+#app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(auth_router)
 app.include_router(product_router)
