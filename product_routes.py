@@ -126,7 +126,7 @@ async def criar_produto_com_foto(
     produto = Produto(
         nome=nome, preco=preco, descricao=descricao,
         categoria_id=categoria_id, porcao_id=porcao_id,
-        disponivel=disponivel, imagem_url=caminho,
+        disponivel=disponivel, imagem_url=None,
     )
     session.add(produto)
     try:
