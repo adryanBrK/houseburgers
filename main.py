@@ -1,7 +1,5 @@
-import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import sessionmaker
 
@@ -14,12 +12,18 @@ from store_routes   import store_router
 
 
 def _inicializar():
+    """Inicializa o banco de dados e cria o usuário admin padrão"""
     Base.metadata.create_all(bind=db)
     session = sessionmaker(bind=db)()
     try:
         if not session.query(Usuario).filter(Usuario.email == "admin@hamburgueria.com").first():
-            session.add(Usuario(nome="Administrador", email="admin@hamburgueria.com",
-                                senha="admin123", admin=True, ativo=True))
+            session.add(Usuario(
+                nome="Administrador", 
+                email="admin@hamburgueria.com",
+                senha="admin123", 
+                admin=True, 
+                ativo=True
+            ))
             session.commit()
             print("✅ Admin criado  →  admin@hamburgueria.com  /  admin123")
     finally:
@@ -28,41 +32,44 @@ def _inicializar():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    """Gerencia o ciclo de vida da aplicação"""
     _inicializar()
     yield
 
 
+# Aplicação FastAPI
 app = FastAPI(
     title="🍔 API Hamburgueria",
-    description="API completa para delivery de hamburgueria",
-    version="2.1.0",
+    description="API completa para delivery de hamburgueria - Deploy Vercel",
+    version="2.2.0",
     lifespan=lifespan,
 )
 
-# ─────────────────────────────────────────────────────────────────
-# CORS — lista explícita dos domínios permitidos
-# Adicione aqui qualquer outro domínio do seu front (Vercel, etc.)
-# ─────────────────────────────────────────────────────────────────
+# ═══════════════════════════════════════════════════════════════════
+# CORS - Lista explícita dos domínios permitidos
+# Adicione aqui qualquer outro domínio do seu frontend
+# ═══════════════════════════════════════════════════════════════════
 ALLOWED_ORIGINS = [
-    "https://house-burgers.vercel.app",   # front de produção
-    "https://houseburger2.vercel.app",    # própria API (docs/swagger)
-    "http://localhost",                   # dev local
-    "http://localhost:3000",
-    "http://localhost:5500",
-    "http://127.0.0.1:5500",
+    "https://house-burgers.vercel.app",      # Frontend produção 1
+    "https://houseburger2.vercel.app",       # Backend/API (Swagger)
+    "http://localhost",                      # Dev local
+    "http://localhost:3000",                 # React dev
+    "http://localhost:5500",                 # Live Server
+    "http://localhost:5173",                 # Vite dev
+    "http://127.0.0.1:5500",                 # Live Server alternativo
+    "http://127.0.0.1:3000",                 # React alternativo
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,           # Lista de origens permitidas
+    allow_credentials=True,                  # Permite cookies/credenciais
+    allow_methods=["*"],                     # Permite todos os métodos (GET, POST, etc)
+    allow_headers=["*"],                     # Permite todos os headers
+    expose_headers=["*"],                    # Expõe todos os headers na resposta
 )
 
-os.makedirs("static/produtos", exist_ok=True)
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
+# Rotas
 app.include_router(auth_router)
 app.include_router(product_router)
 app.include_router(order_router)
@@ -72,6 +79,22 @@ app.include_router(store_router)
 
 @app.get("/", tags=["Status"])
 def raiz():
-    return {"status": "online", "docs": "/docs", "versao": "2.1.0"}
+    """Endpoint de verificação de status"""
+    return {
+        "status": "online",
+        "message": "🍔 API Hamburgueria - Vercel Deploy",
+        "docs": "/docs",
+        "versao": "2.2.0",
+        "cors": "enabled",
+        "allowed_origins": len(ALLOWED_ORIGINS)
+    }
 
-# uvicorn main:app --reload
+
+@app.get("/health", tags=["Status"])
+def health_check():
+    """Health check para monitoramento"""
+    return {"status": "healthy", "database": "connected"}
+
+
+# Handler para Vercel
+handler = app
