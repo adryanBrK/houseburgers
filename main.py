@@ -39,14 +39,29 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+# ─────────────────────────────────────────────────────────────────
+# CORS — lista explícita dos domínios permitidos
+# Adicione aqui qualquer outro domínio do seu front (Vercel, etc.)
+# ─────────────────────────────────────────────────────────────────
+ALLOWED_ORIGINS = [
+    "https://house-burgers.vercel.app",   # front de produção
+    "https://houseburger2.vercel.app",    # própria API (docs/swagger)
+    "http://localhost",                   # dev local
+    "http://localhost:3000",
+    "http://localhost:5500",
+    "http://127.0.0.1:5500",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], allow_credentials=True,
-    allow_methods=["*"], allow_headers=["*"],
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-#os.makedirs("static/produtos", exist_ok=True)
-#app.mount("/static", StaticFiles(directory="static"), name="static")
+os.makedirs("static/produtos", exist_ok=True)
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
 app.include_router(auth_router)
 app.include_router(product_router)
