@@ -115,13 +115,13 @@ async def criar_produto_com_foto(
         if not session.query(Porcao).filter(Porcao.id == porcao_id).first():
             raise HTTPException(status_code=404, detail="Porção não encontrada")
 
-    os.makedirs(PASTA_IMAGENS, exist_ok=True)
-    caminho = f"{PASTA_IMAGENS}/{imagem.filename}"
-    try:
-        with open(caminho, "wb") as f:
-            shutil.copyfileobj(imagem.file, f)
-    except Exception:
-        raise HTTPException(status_code=500, detail="Erro ao salvar imagem")
+    #os.makedirs(PASTA_IMAGENS, exist_ok=True)
+    #caminho = f"{PASTA_IMAGENS}/{imagem.filename}"
+    #try:
+        #with open(caminho, "wb") as f:
+            #shutil.copyfileobj(imagem.file, f)
+    #except Exception:
+        #raise HTTPException(status_code=500, detail="Erro ao salvar imagem")
 
     produto = Produto(
         nome=nome, preco=preco, descricao=descricao,
